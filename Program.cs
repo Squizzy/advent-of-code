@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO.Enumeration;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using icecream;
 
 // using icecream;
 using static icecream.IceCream;
@@ -10,7 +12,6 @@ using static icecream.IceCream;
 
 namespace AoC2024
 {
-
     class Day1
     {
         private static readonly List<int> _data1 = [];
@@ -21,8 +22,8 @@ namespace AoC2024
             try
             {
                 string? line;
-                StreamReader sr = new("2024\\input");
-                // StreamReader sr = new("..\\..\\..\\2024\\input");
+                // StreamReader sr = new("2024\\01_path_sample.txt");
+                StreamReader sr = new("2024\\01_path.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -36,11 +37,11 @@ namespace AoC2024
             }
             catch
             {
-                Console.WriteLine("Problem loading the data for 2024-day1");
+                Console.WriteLine("Problem loading the data for 2024-day01");
             }
         }
 
-        public  void displayDay1Data()
+        public void displayDay1Data()
         {
             Console.WriteLine("Printing data1, data2");
             for (int i = 0; i < _data1.Count(); i++)
@@ -101,7 +102,8 @@ namespace AoC2024
             try
             {
                 string? line;
-                StreamReader sr = new("2024\\reports.txt");
+                // StreamReader sr = new("2024\\02_reports_sample.txt");
+                StreamReader sr = new("2024\\02_reports.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -114,7 +116,7 @@ namespace AoC2024
             }
             catch
             {
-                Console.WriteLine("Problem loading the data for 2024-day1");
+                Console.WriteLine("Problem loading the data for 2024-day02");
             }
         }
 
@@ -202,7 +204,6 @@ namespace AoC2024
             Console.WriteLine($"2024 - Day 02 Part 2: {safe_count}");
 
         }
-
     }
 
     class Day3
@@ -213,9 +214,8 @@ namespace AoC2024
             try
             {
                 string? line;
-                // StreamReader sr = new("2024\\corrupted_mem_test.txt");
-                // StreamReader sr = new("2024\\corrupted_mem_test2.txt");
-                StreamReader sr = new("2024\\corrupted_mem.txt");
+                // StreamReader sr = new("2024\\03_corrupted_mem_sample.txt");
+                StreamReader sr = new("2024\\03_corrupted_mem.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -226,14 +226,14 @@ namespace AoC2024
             }
             catch
             {
-                Console.WriteLine("Problem loading the data for 2024-day1");
+                Console.WriteLine("Problem loading the data for 2024-day03");
             }
 
         }
 
         public void DisplayDay3Data()
         {
-            IceCream.ic(_corrupted_data);
+            _corrupted_data.ic();
         }
 
         private static string[] _extract_uncorrupted_muls(string line)
@@ -374,13 +374,13 @@ namespace AoC2024
             }
             catch
             {
-                Console.WriteLine("Problem loading the data for 2024-day1");
+                Console.WriteLine("Problem loading the data for 2024-day04");
             }
         }
 
         public void DisplayDay4Data()
         {
-            IceCream.ic(_xmas_puzzle);
+            _xmas_puzzle.ic();
         }
 
         private static int _find_xmas_count_from_x(int row, int col)
@@ -484,14 +484,46 @@ namespace AoC2024
 
     class Day5
     {
+
+        // private static readonly List<string> _manual_pages = [];
+        private static readonly List<List<int>> _rules = [];
+        private static readonly List<List<int>> _page_numbers = [];
+
         public Day5()
         {
+            try
+            {
+                string? line;
+                string sample = "_sample";
+                // string sample = "";
+                string filename = Path.Join("2024", $"05_manual_pages{sample}.txt");
+                StreamReader sr = new(filename);
+                line = sr.ReadLine();
+                while (line != null)
+                {
+                    if (line == "\n")
+                        continue;
 
+                    else if (line.Contains('|'))
+                        _rules.Add(line.Trim().Split('|').ToList().ConvertAll(int.Parse));
+
+                    else if (line.Contains(','))
+                        _page_numbers.Add(line.Trim().Split(',').ToList().ConvertAll(int.Parse));
+
+                    line = sr.ReadLine();
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Problem loading the data for 2024-day05");
+            }
         }
 
         public void DisplayDay5Data()
         {
-
+            // _manual_pages.ic();
+            _rules.ic();
+            _page_numbers.ic();
         }
 
         public void Part1()
@@ -499,6 +531,7 @@ namespace AoC2024
             
         }
     }
+
 
     class AoC2024
     {
@@ -524,6 +557,8 @@ namespace AoC2024
             // day4.Part1();
             // day4.Part2();
 
+            Day5 day5 = new();
+            day5.DisplayDay5Data();
         }
     }
 }
