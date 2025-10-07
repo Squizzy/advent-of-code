@@ -1,7 +1,7 @@
 list1: list[int] = []
 list2: list[int] = []
 
-with open("input") as f:
+with open("02_path") as f:
     lines = f.readlines()
 
     for line in lines:
