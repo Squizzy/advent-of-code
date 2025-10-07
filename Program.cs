@@ -528,8 +528,14 @@ namespace AoC2024
 
         public void Part1()
         {
-            
+
         }
+
+        public void Part2()
+        {
+
+        }
+
     }
 
 
@@ -558,7 +564,10 @@ namespace AoC2024
             // day4.Part2();
 
             Day5 day5 = new();
-            day5.DisplayDay5Data();
+            // day5.DisplayDay4Data();
+            day5.Part1();
+            day5.Part2();
+
         }
     }
 }
