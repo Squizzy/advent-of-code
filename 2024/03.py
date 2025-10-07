@@ -35,7 +35,7 @@ def is_safe_with_one_less_level(report_list: list[int]) -> bool:
 rep_no: int = 0
 safe_report: dict[int, tuple[bool, bool]] = {}
 
-with open("reports.txt") as f:
+with open("02_reports.txt") as f:
     lines = f.readlines()
 
     for line in lines:

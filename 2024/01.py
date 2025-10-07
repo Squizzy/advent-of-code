@@ -1,7 +1,7 @@
 list1: list[int] = []
 list2: list[int] = []
 
-with open("input") as f:
+with open("01_path.txt") as f:
     lines = f.readlines()
 
     # print(lines[0])
