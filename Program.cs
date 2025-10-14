@@ -1,10 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Enumeration;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using icecream;
+
 
 // using icecream;
 using static icecream.IceCream;
@@ -484,34 +487,50 @@ namespace AoC2024
 
     class Day5
     {
-
         // private static readonly List<string> _manual_pages = [];
         private static readonly List<List<int>> _rules = [];
-        private static readonly List<List<int>> _page_numbers = [];
+        private static readonly List<List<int>> _manuals_pages = [];
+
+        private readonly List<int> _correct_manuals = [];
+        private readonly List<int> _incorrect_manuals = [];
 
         public Day5()
         {
+            List<int> page1_rule_list = [];
+            List<int> page2_rule_list = [];
+
             try
             {
                 string? line;
-                string sample = "_sample";
-                // string sample = "";
+                // string sample = "_sample";
+                string sample = "";
                 string filename = Path.Join("2024", $"05_manual_pages{sample}.txt");
                 StreamReader sr = new(filename);
                 line = sr.ReadLine();
+
                 while (line != null)
                 {
                     if (line == "\n")
                         continue;
 
                     else if (line.Contains('|'))
-                        _rules.Add(line.Trim().Split('|').ToList().ConvertAll(int.Parse));
+                    {
+                        // A rule is found, first list of _rules is the page that comes first, second list of _rules is the page that must come after
+                        List<int> rule = line.Trim().Split('|').ToList().ConvertAll(int.Parse);
+                        page1_rule_list.Add(rule[0]);
+                        page2_rule_list.Add(rule[1]);
+                    }
 
                     else if (line.Contains(','))
-                        _page_numbers.Add(line.Trim().Split(',').ToList().ConvertAll(int.Parse));
+                    {
+                        _manuals_pages.Add(line.Trim().Split(',').ToList().ConvertAll(int.Parse));
+                    }
 
                     line = sr.ReadLine();
                 }
+
+                _rules.Add(page1_rule_list);
+                _rules.Add(page2_rule_list);
             }
             catch
             {
@@ -523,12 +542,56 @@ namespace AoC2024
         {
             // _manual_pages.ic();
             _rules.ic();
-            _page_numbers.ic();
+            _manuals_pages.ic();
         }
 
         public void Part1()
         {
+            // For each manuals list
+            // take one list at a time
+            // for each list, take a page 
+            // if this page is in the rules for the first pages, note its index and that of the rule
+            // then for this rule, check if the rule for the second page appears in this manual list.
+            // if it does, note its index.
+            // if this index of the page for the second rule is < than the index for the page of the first rule, this manual is not in the right order
+            // if no rule is incorrect, record the middle number in _correct_manuals
 
+            int first_index, second_index;
+
+            foreach (List<int> manual_pages in _manuals_pages)
+            {
+                bool pages_are_in_correct_order = true;
+                foreach (int page in manual_pages)
+                {
+                    if (!pages_are_in_correct_order) break;
+
+                    for (int rule_index = 0; rule_index < _rules[0].Count && pages_are_in_correct_order; rule_index++)
+                    {
+
+                        if (_rules[0][rule_index] == page)
+                        {
+                            if (manual_pages.Contains(_rules[1][rule_index]))
+                            {
+                                first_index = manual_pages.IndexOf(page);
+                                second_index = manual_pages.IndexOf(_rules[1][rule_index]);
+
+                                if (second_index < first_index) pages_are_in_correct_order = false;
+                            }
+
+                        }
+                    }
+                }
+
+                if (pages_are_in_correct_order)
+                {
+                    _correct_manuals.Add(manual_pages[manual_pages.Count / 2]);
+                }
+            }
+
+            int total_pagenums = 0;
+            foreach (int page_num in _correct_manuals) total_pagenums += page_num;
+
+            Console.WriteLine($"2024 - Day 05 Part 1: {total_pagenums}");
         }
 
         public void Part2()
@@ -564,7 +627,7 @@ namespace AoC2024
             // day4.Part2();
 
             Day5 day5 = new();
-            // day5.DisplayDay4Data();
+            // day5.DisplayDay5Data(); 
             day5.Part1();
             day5.Part2();
 
