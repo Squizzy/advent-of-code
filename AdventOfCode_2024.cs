@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO.Enumeration;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using icecream;
 
@@ -491,8 +492,7 @@ namespace AoC2024
         private static readonly List<List<int>> _rules = [];
         private static readonly List<List<int>> _manuals_pages = [];
 
-        private readonly List<int> _correct_manuals = [];
-        private readonly List<int> _incorrect_manuals = [];
+        // private readonly List<int> _incorrect_manuals = [];
 
         public Day5()
         {
@@ -545,6 +545,66 @@ namespace AoC2024
             _manuals_pages.ic();
         }
 
+        private bool _is_compliant_to_rule(int page, int rule_index, List<int> manual_pages)
+        {
+            int first_index; // just added not checked
+            int second_index; // just added not checked
+            bool pages_are_in_correct_order = false; // just added not checked
+
+            if (_rules[0][rule_index] == page)
+                {
+                    if (manual_pages.Contains(_rules[1][rule_index]))
+                    {
+                        first_index = manual_pages.IndexOf(page);
+                        second_index = manual_pages.IndexOf(_rules[1][rule_index]);
+
+                        if (second_index < first_index) pages_are_in_correct_order = false;
+                    }
+
+                }   
+            if (pages_are_in_correct_order) Console.WriteLine("paegs in correct order");
+            return true;
+        }
+
+        private bool _are_pages_in_correct_order(List<int> manual_pages)
+        {
+
+            int first_index, second_index;
+            bool pages_are_in_correct_order = true;
+
+            foreach (int page in manual_pages)
+            {
+                if (!pages_are_in_correct_order) break;
+
+                for (int rule_index = 0; rule_index < _rules[0].Count && pages_are_in_correct_order; rule_index++)
+                {
+
+                    if (_rules[0][rule_index] == page)
+                    {
+                        if (manual_pages.Contains(_rules[1][rule_index]))
+                        {
+                            first_index = manual_pages.IndexOf(page);
+                            second_index = manual_pages.IndexOf(_rules[1][rule_index]);
+
+                            if (second_index < first_index) pages_are_in_correct_order = false;
+                        }
+
+                    }
+                }
+            }
+
+            return pages_are_in_correct_order;
+        }
+
+        private List<int> _fix_pages_order(List<int> disordered_manual_pages)
+        {
+            while (!_are_pages_in_correct_order(disordered_manual_pages))
+            {
+                
+            }
+            return [];
+        }
+
         public void Part1()
         {
             // For each manuals list
@@ -556,81 +616,113 @@ namespace AoC2024
             // if this index of the page for the second rule is < than the index for the page of the first rule, this manual is not in the right order
             // if no rule is incorrect, record the middle number in _correct_manuals
 
-            int first_index, second_index;
+            // List<int> correct_manuals_centre_page = [];
+
+            // int first_index, second_index;
+            int total_pagenums = 0;
 
             foreach (List<int> manual_pages in _manuals_pages)
             {
-                bool pages_are_in_correct_order = true;
-                foreach (int page in manual_pages)
+                // bool pages_are_in_correct_order = true;
+                // foreach (int page in manual_pages)
+                // {
+                //     if (!pages_are_in_correct_order) break;
+
+                //     for (int rule_index = 0; rule_index < _rules[0].Count && pages_are_in_correct_order; rule_index++)
+                //     {
+
+                //         if (_rules[0][rule_index] == page)
+                //         {
+                //             if (manual_pages.Contains(_rules[1][rule_index]))
+                //             {
+                //                 first_index = manual_pages.IndexOf(page);
+                //                 second_index = manual_pages.IndexOf(_rules[1][rule_index]);
+
+                //                 if (second_index < first_index) pages_are_in_correct_order = false;
+                //             }
+
+                //         }
+                //     }
+                // }
+
+
+                if (_are_pages_in_correct_order(manual_pages))
                 {
-                    if (!pages_are_in_correct_order) break;
-
-                    for (int rule_index = 0; rule_index < _rules[0].Count && pages_are_in_correct_order; rule_index++)
-                    {
-
-                        if (_rules[0][rule_index] == page)
-                        {
-                            if (manual_pages.Contains(_rules[1][rule_index]))
-                            {
-                                first_index = manual_pages.IndexOf(page);
-                                second_index = manual_pages.IndexOf(_rules[1][rule_index]);
-
-                                if (second_index < first_index) pages_are_in_correct_order = false;
-                            }
-
-                        }
-                    }
-                }
-
-                if (pages_are_in_correct_order)
-                {
-                    _correct_manuals.Add(manual_pages[manual_pages.Count / 2]);
+                    // correct_manuals_centre_page.Add(manual_pages[manual_pages.Count / 2]);
+                    total_pagenums += manual_pages[manual_pages.Count / 2];
                 }
             }
 
-            int total_pagenums = 0;
-            foreach (int page_num in _correct_manuals) total_pagenums += page_num;
+            // foreach (int page_num in correct_manuals_centre_page) total_pagenums += page_num;
 
             Console.WriteLine($"2024 - Day 05 Part 1: {total_pagenums}");
         }
 
         public void Part2()
         {
+            // For each of the incorrectly-ordered updates, use the page ordering rules 
+            // to put the page numbers in the right order. 
+            // For the above example, here are the three incorrectly-ordered updates and their correct orderings:
+            // 75,97,47,61,53 becomes 97,75,47,61,53.
+            // 61,13,29 becomes 61,29,13.
+            // 97,13,75,29,47 becomes 97,75,47,29,13.
+
+            // After taking only the incorrectly-ordered updates and ordering them correctly, 
+            // their middle page numbers are 47, 29, and 47. Adding these together produces 123.
+
+            // Find the updates which are not in the correct order. What do you get if you add up the middle page numbers after correctly ordering just those updates?
+            // List<List<int>> manual_with_incorrect_pages_order = [];
+            // List<int> corrected_manual_centre_page = [];
+            int total_pagenums = 0;
+
+            foreach (List<int> manual_pages in _manuals_pages)
+            {
+                if (!_are_pages_in_correct_order(manual_pages))
+                {
+                    // manual_with_incorrect_pages_order.Add(manual_pages);
+                    List<int> fixed_manual_pages = _fix_pages_order(manual_pages);
+                    total_pagenums += fixed_manual_pages[fixed_manual_pages.Count / 2];
+                }
+            }
+
+            Console.WriteLine($"2024 - Day 05 Part 1: {total_pagenums}");
 
         }
 
     }
 
 
-    class AoC2024
-    {
-        public static void Main()
-        {
-            // Day1 day1 = new();
-            // // day1.displayDay1Data();
-            // day1.Part1();
-            // day1.Part2();
+    // class AoC2024
+    // {
+    //     public static void Main()
+    //     {
+    //         Console.WriteLine("AdventO Of Code 2024");
 
-            // Day2 day2 = new();
-            // // day2.DisplayDay2Data();
-            // day2.Part1();
-            // day2.Part2();
+    //         // Day1 day1 = new();
+    //         // // day1.displayDay1Data();
+    //         // day1.Part1();
+    //         // day1.Part2();
 
-            // Day3 day3 = new();
-            // // day3.DisplayDay3Data();
-            // day3.Part1();
-            // day3.Part2();
+    //         // Day2 day2 = new();
+    //         // // day2.DisplayDay2Data();
+    //         // day2.Part1();
+    //         // day2.Part2();
 
-            // Day4 day4 = new();
-            // // day4.DisplayDay4Data();
-            // day4.Part1();
-            // day4.Part2();
+    //         // Day3 day3 = new();
+    //         // // day3.DisplayDay3Data();
+    //         // day3.Part1();
+    //         // day3.Part2();
 
-            Day5 day5 = new();
-            // day5.DisplayDay5Data(); 
-            day5.Part1();
-            day5.Part2();
+    //         // Day4 day4 = new();
+    //         // // day4.DisplayDay4Data();
+    //         // day4.Part1();
+    //         // day4.Part2();
 
-        }
-    }
+    //         Day5 day5 = new();
+    //         // day5.DisplayDay5Data(); 
+    //         day5.Part1();
+    //         day5.Part2();
+
+    //     }
+    // }
 }
