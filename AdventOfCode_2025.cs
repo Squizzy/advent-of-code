@@ -9,6 +9,7 @@ namespace AoC2025
 {
     interface IAoCDay
     {
+        public bool DayDataLoadedSuccessfully {get; init; }
         public void DisplayData();
 
         public void Part1();
@@ -67,9 +68,11 @@ namespace AoC2025
 
     class Day1 : IAoCDay
     {
-        private int DayNum {get; set; }
-        private int PartNum {get; set; }
-        private string DayNumOfAoC {get; set; }
+        public bool DayDataLoadedSuccessfully  {get; init; }
+
+        private int DayNum {get; init; }
+        private int PartNum {get; init; }
+        private string DayNumOfAoC {get; init; }
         private string InputFileName {get; set; }
         private bool SampleFile {get; set; }
 
@@ -96,6 +99,8 @@ namespace AoC2025
 
             // load the data
             (List<string> inputValues, bool loadedStatus) = Generics.LoadInputFile(inputFilePath:InputFileName);
+
+            DayDataLoadedSuccessfully = loadedStatus;
 
             // handle problem with loading data
             if (!loadedStatus)
@@ -135,25 +140,25 @@ namespace AoC2025
             You could follow the instructions, but your recent required official North Pole secret entrance security training seminar taught you that the safe is actually a decoy. The actual password is the number of times the dial is left pointing at 0 after any rotation in the sequence.
             */
 
-            int current_position = dialStartingPoint;
+            int currentPosition = dialStartingPoint;
 
-            int count_zeroes = 0;
+            int zeroesCount = 0;
 
             foreach ((char d, int r) in rotations)
             {
                 // add the current dial value
                 int dir = d == 'R' ? directionR : d == 'L' ? directionL : 0;
                 if (dir == 0) Console.WriteLine("Error in direction");
-                current_position += dir * r;
+                currentPosition += dir * r;
 
                 // handle rotating over the 0 value
-                current_position = (current_position + 100) % (dialMax - dialMin + 1);
+                currentPosition = (currentPosition + 100) % (dialMax - dialMin + 1);
 
                 // if 0, then add this to the count
-                if (current_position == 0) count_zeroes += 1;
+                if (currentPosition == 0) zeroesCount += 1;
             }
 
-            Console.WriteLine($"{DayNumOfAoC} - Part 1: {count_zeroes}");
+            Console.WriteLine($"{DayNumOfAoC} - Part 1: {zeroesCount}");
         }
 
         public void Part2()
@@ -176,10 +181,12 @@ namespace AoC2025
             Be careful: if the dial were pointing at 50, a single rotation like R1000 would cause the dial to point at 0 ten times before returning back to 50!
             */
 
-            int new_position = 0;
-            int current_position = dialStartingPoint;
+            int newPosition;
+            int currentPosition = dialStartingPoint;
 
-            int count_zeroes = 0;
+            int zeroesCount = 0;
+
+            bool fromZero = false; // when rotating left, flag to indicating starting from 0
 
             foreach ((char d, int r) in rotations)
             {
@@ -187,86 +194,202 @@ namespace AoC2025
                 int dir = d == 'R' ? directionR : d == 'L' ? directionL : 0;
                 if (dir == 0) Console.WriteLine("Error in direction");
 
-                int rot = r;
-                while (rot >= 100)
-                {
-                    count_zeroes++;
-                    rot -= 100;
-                }
+                // if the rotation is more than 100 units, 
+                // then add all these spare turns as they will always go over 0
+                int spare_turns = r >= 100 ? r/100 : 0;
+                zeroesCount += spare_turns;
 
-                new_position = current_position + dir * r;
+                // rotate the dial but do not count the spare rotations
+                newPosition = currentPosition + dir * (r - spare_turns * 100);
 
-
-// TODO
+                // if decreasing:
                 if (dir == directionL)
                 {
-                    // if the new position is less than 0 we went over the 0, add 1
-                    if (new_position < 0)
-                    {
-                        count_zeroes ++;
-                        int diff_pos = r - current_position;
-                        while (diff_pos > 100)
-                        {
-                            count_zeroes++;
-                            diff_pos -= 100;
-                        }
-                    }
+                    // if the new position now is 
+                    // less or equal to 0 we went over the 0, add 1
+                    // if we are starting from 0, then do not count this as it did not step over 0
+                    zeroesCount += (newPosition <= 0 && !fromZero) ? 1 : 0;
                 }
+                // if increasing
+                // if this ends up as 100 or more it stopped at 0 or went over
                 else
                 {
-                    // if (new_position > 0 && new_position < current_position)
-                    // {
-                    //     count_zeroes ++;
-                    //     int diff_pos = r - current_position;
-                    //     while (diff_pos > 100)
-                    //     {
-                    //         count_zeroes++;
-                    //         diff_pos -= 100;
-                    //     }
-                    // }
+                    zeroesCount += newPosition > 99 ? 1: 0;
                 }
 
-                // handle rotating over the 0 value
-                current_position = (current_position + 100) % (dialMax - dialMin + 1);
-
-                // if 0, then add this to the count
-                if (current_position == 0) count_zeroes += 1;
+                
+                // if the new position was less than 0, reset it to the correct dial value
+                currentPosition = (newPosition + 100) % (dialMax - dialMin + 1);
+                fromZero = currentPosition == 0;
             }
 
-            Console.WriteLine($"{DayNumOfAoC} - Part 2: {count_zeroes}");
+            Console.WriteLine($"{DayNumOfAoC} - Part 2: {zeroesCount}");
         }
+    }
+
+    class Day2 : IAoCDay
+    {
+        public bool DayDataLoadedSuccessfully  {get; init; }
+
+        private int DayNum {get; init; }
+        private int PartNum {get; init; }
+        private string DayNumOfAoC {get; init; }
+        private string InputFileName {get; set; }
+        private bool SampleFile {get; set; }
+
+        private const int dialMin = 0;
+        private const int dialMax = 99;
+        private const int dialStartingPoint = 50;
+        private const int directionL = -1;
+        private const int directionR = 1;
+        private readonly List<(char, int)> rotations = [];
+
+        public Day2()
+        {
+            SampleFile = false;
+
+            DayNum = 2;
+            PartNum = 1;
+            
+            // Set the day value
+            DayNumOfAoC = Generics.DayNumOfAOC(dayNum:DayNum);
+            Console.WriteLine(DayNumOfAoC);
+
+            // set the input file
+            InputFileName = Generics.InputFileName(dayNum:DayNum, partNum:PartNum, sampleFile:SampleFile);
+
+            // load the data
+            (List<string> inputValues, bool loadedStatus) = Generics.LoadInputFile(inputFilePath:InputFileName);
+
+            DayDataLoadedSuccessfully = loadedStatus;
+
+            // handle problem with loading data
+            if (!loadedStatus)
+            {
+                Console.WriteLine("Error loading data, aborting");
+                throw new FileLoadException ($"Error loading data file {InputFileName}. Aborting.");
+            }
+
+            // handle problem-specific data pre-parsing
+
+            foreach (string line in inputValues)
+            {
+            //     char dir = line.Trim()[0];
+            //     int rot = int.Parse(line.Trim()[1..]);
+            //     rotations.Add((dir, rot));
+            }
+        }
+
+        public void DisplayData()
+        {
+            Console.WriteLine($"{DayNumOfAoC} - data:");
+            foreach ((char d, int r) in rotations)
+            {
+                Console.WriteLine($"{d}{r}\t=> dir: {d} - rot: {r}");
+            }
+            
+        }
+
+        public void Part1()
+        {
+            /*
+            */
+
+            Console.WriteLine($"{DayNumOfAoC} - Part 1: {null}");
+        }
+
+        public void Part2()
+        {
+            /*
+            */
+
+            Console.WriteLine($"{DayNumOfAoC} - Part 2: {null}");
+        }
+    }
+
 
 
     //region templateDate
     // class Day1 : IAoCDay
     // {
-    //     private int day_num {get; set; }
-    //     private string dayNumOfAoC {get; set; }
+    //     public bool DayDataLoadedSuccessfully  {get; init; }
+
+    //     private int DayNum {get; init; }
+    //     private int PartNum {get; init; }
+    //     private string DayNumOfAoC {get; init; }
+    //     private string InputFileName {get; set; }
+    //     private bool SampleFile {get; set; }
+
+    //     private const int dialMin = 0;
+    //     private const int dialMax = 99;
+    //     private const int dialStartingPoint = 50;
+    //     private const int directionL = -1;
+    //     private const int directionR = 1;
+    //     private readonly List<(char, int)> rotations = [];
 
     //     public Day1()
     //     {
-    //         day_num = 1;
-    //         dayNumOfAoC = $"2025 Day {day_num:D2}";
-    //         Console.WriteLine(dayNumOfAoC);
+    //         SampleFile = false;
+
+    //         DayNum = 1;
+    //         PartNum = 1;
+            
+    //         // Set the day value
+    //         DayNumOfAoC = Generics.DayNumOfAOC(dayNum:DayNum);
+    //         Console.WriteLine(DayNumOfAoC);
+
+    //         // set the input file
+    //         InputFileName = Generics.InputFileName(dayNum:DayNum, partNum:PartNum, sampleFile:SampleFile);
+
+    //         // load the data
+    //         (List<string> inputValues, bool loadedStatus) = Generics.LoadInputFile(inputFilePath:InputFileName);
+
+    //         DayDataLoadedSuccessfully = loadedStatus;
+
+    //         // handle problem with loading data
+    //         if (!loadedStatus)
+    //         {
+    //             Console.WriteLine("Error loading data, aborting");
+    //             throw new FileLoadException ($"Error loading data file {InputFileName}. Aborting.");
+    //         }
+
+    //         // handle problem-specific data pre-parsing
+    //         foreach (string line in inputValues)
+    //         {
+    //             char dir = line.Trim()[0];
+    //             int rot = int.Parse(line.Trim()[1..]);
+    //             rotations.Add((dir, rot));
+    //         }
     //     }
 
     //     public void DisplayData()
     //     {
-    //         Console.WriteLine($"{dayNumOfAoC}: data");
+    //         Console.WriteLine($"{DayNumOfAoC} - data:");
+    //         foreach ((char d, int r) in rotations)
+    //         {
+    //             Console.WriteLine($"{d}{r}\t=> dir: {d} - rot: {r}");
+    //         }
             
     //     }
 
     //     public void Part1()
     //     {
-    //          Console.WriteLine($"{dayNumOfAoC}: Part 1");
+    //         /*
+    //         */
+
+    //         Console.WriteLine($"{DayNumOfAoC} - Part 1: {null}");
     //     }
 
     //     public void Part2()
     //     {
-    //          Console.WriteLine($"{dayNumOfAoC}: Part 2");
+    //         /*
+    //         */
+
+    //         Console.WriteLine($"{DayNumOfAoC} - Part 2: {null}");
     //     }
+    // }
+
     //endregion
 
-    }
 
 }
