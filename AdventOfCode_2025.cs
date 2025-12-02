@@ -1,5 +1,6 @@
 
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Globalization;
 using System.Security;
@@ -60,7 +61,7 @@ namespace AoC2025
                 finally
                 {
                     
-                    Console.WriteLine(inputValues.Count);
+                    // Console.WriteLine($"Number of lines read from the input file: {inputValues.Count}");
                 }
                 return (inputValues, true);
             }
@@ -237,12 +238,20 @@ namespace AoC2025
         private string InputFileName {get; set; }
         private bool SampleFile {get; set; }
 
-        private const int dialMin = 0;
-        private const int dialMax = 99;
-        private const int dialStartingPoint = 50;
-        private const int directionL = -1;
-        private const int directionR = 1;
-        private readonly List<(char, int)> rotations = [];
+        private static readonly List<(long,long)> IdRanges = [];
+
+        private static void GetRangesList(List<string> rawList)
+        {
+            foreach (string rawRange in rawList)
+            {
+                List<string> idRangeList = [.. rawRange.Split(',')];
+                foreach (string range in idRangeList)
+                {
+                    string[] rangeHighAndLow = [.. range.Split('-')];
+                    IdRanges.Add((long.Parse(rangeHighAndLow[0]), long.Parse(rangeHighAndLow[1])));
+                }
+            }
+        }
 
         public Day2()
         {
@@ -271,21 +280,15 @@ namespace AoC2025
             }
 
             // handle problem-specific data pre-parsing
-
-            foreach (string line in inputValues)
-            {
-            //     char dir = line.Trim()[0];
-            //     int rot = int.Parse(line.Trim()[1..]);
-            //     rotations.Add((dir, rot));
-            }
+            GetRangesList(inputValues);
         }
 
         public void DisplayData()
         {
             Console.WriteLine($"{DayNumOfAoC} - data:");
-            foreach ((char d, int r) in rotations)
+            foreach ((long low, long high) in IdRanges)
             {
-                Console.WriteLine($"{d}{r}\t=> dir: {d} - rot: {r}");
+                Console.WriteLine($"Low: {low}\tHigh: {high}");
             }
             
         }
@@ -293,17 +296,100 @@ namespace AoC2025
         public void Part1()
         {
             /*
+            you can find the invalid IDs by looking for any ID which is made only of some sequence of digits repeated twice. So, 55 (5 twice), 6464 (64 twice), and 123123 (123 twice) would all be invalid IDs.
+            None of the numbers have leading zeroes; 0101 isn't an ID at all. (101 is a valid ID that you would ignore.)
+            Your job is to find all of the invalid IDs that appear in the given ranges. In the above example:
+                11-22 has two invalid IDs, 11 and 22.
+                95-115 has one invalid ID, 99.
+                998-1012 has one invalid ID, 1010.
+                1188511880-1188511890 has one invalid ID, 1188511885.
+                222220-222224 has one invalid ID, 222222.
+                1698522-1698528 contains no invalid IDs.
+                446443-446449 has one invalid ID, 446446.
+                38593856-38593862 has one invalid ID, 38593859.
+                The rest of the ranges contain no invalid IDs.
+            Adding up all the invalid IDs in this example produces 1227775554.
             */
 
-            Console.WriteLine($"{DayNumOfAoC} - Part 1: {null}");
+            long invalidIdsTotal = 0;
+
+            foreach ((long low, long high) in IdRanges)
+            {
+                for (long currentId = low; currentId < high + 1; currentId++)
+                {
+                    string stringId = currentId.ToString();
+                    int l = stringId.Length;
+                    if (stringId[0..(l/2)] == stringId[(l/2)..l])
+                    {
+                        invalidIdsTotal += currentId;
+                    }
+
+                }
+            }
+
+            Console.WriteLine($"{DayNumOfAoC} - Part 1: {invalidIdsTotal}");
         }
 
         public void Part2()
         {
             /*
+            Now, an ID is invalid if it is made only of some sequence of digits repeated at least twice. So, 12341234 (1234 two times), 123123123 (123 three times), 1212121212 (12 five times), and 1111111 (1 seven times) are all invalid IDs.
+            From the same example as before:
+                11-22 still has two invalid IDs, 11 and 22.
+                95-115 now has two invalid IDs, 99 and 111.
+                998-1012 now has two invalid IDs, 999 and 1010.
+                1188511880-1188511890 still has one invalid ID, 1188511885.
+                222220-222224 still has one invalid ID, 222222.
+                1698522-1698528 still contains no invalid IDs.
+                446443-446449 still has one invalid ID, 446446.
+                38593856-38593862 still has one invalid ID, 38593859.
+                565653-565659 now has one invalid ID, 565656.
+                824824821-824824827 now has one invalid ID, 824824824.
+                2121212118-2121212124 now has one invalid ID, 2121212121.
+            Adding up all the invalid IDs in this example produces 4174379265.
             */
 
-            Console.WriteLine($"{DayNumOfAoC} - Part 2: {null}");
+            long invalidIdsTotal = 0;
+            HashSet<long> identifiedIllegals = [];
+
+            foreach ((long low, long high) in IdRanges)
+            {
+                for (long currentId = low; currentId < high + 1; currentId++)
+                {
+                    string stringId = currentId.ToString();
+                    int IdLength = stringId.Length;
+
+                    // identify what the length can be divided into. max is l/2
+                    for (int numberOfDigitsInPart = 1; numberOfDigitsInPart <= IdLength / 2; numberOfDigitsInPart++)
+                    {
+                        // if you can't split the Id in equal number of l length, skip
+                        if (IdLength % numberOfDigitsInPart != 0) continue;
+
+                        int numberOfParts = IdLength / numberOfDigitsInPart;
+
+                        // store the parts of the Id separated in l parts into a set
+                        HashSet<string> parts = [];
+                        for (int partNumber = 0; partNumber < numberOfParts; partNumber++)
+                        {
+                            // part position start and end (for a division into numberOfParts parts)
+                            int start = 0 +  numberOfDigitsInPart * partNumber;
+                            int end = numberOfDigitsInPart + numberOfDigitsInPart * partNumber;
+                            parts.Add(stringId[start..end]);
+                        }
+
+                        // if the set only contains one element, then it is an illegal id
+                        if (parts.Count == 1) identifiedIllegals.Add(currentId);
+
+                    }
+                }
+
+
+            }
+            invalidIdsTotal = identifiedIllegals.Sum();
+
+            // foreach (long illegal in identifiedIllegals) Console.WriteLine($"Illegal: {illegal}");
+            
+            Console.WriteLine($"{DayNumOfAoC} - Part 2: {invalidIdsTotal}");
         }
     }
 
