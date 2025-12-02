@@ -35,15 +35,15 @@ namespace AdventOfcode
         {
             Console.WriteLine("Advent Of Code");
 
-            Day1 day1 = new();
-            if (!day1.DayDataLoadedSuccessfully) return 1;
-            // day.DisplayData();
-            day1.Part1();
-            day1.Part2();
+            // Day1 day1 = new();
+            // if (!day1.DayDataLoadedSuccessfully) return 1;
+            // // day.DisplayData();
+            // day1.Part1();
+            // day1.Part2();
                 
             Day2 day2 = new();
             if (!day2.DayDataLoadedSuccessfully) return 1;
-            // day.DisplayData();
+            // day2.DisplayData();
             day2.Part1();
             day2.Part2();
 
