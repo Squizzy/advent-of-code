@@ -1,8 +1,10 @@
 
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 
@@ -393,7 +395,128 @@ namespace AoC2025
         }
     }
 
+    class Day3 : IAoCDay
+    {
+        public bool DayDataLoadedSuccessfully  {get; init; }
 
+        private int DayNum {get; init; }
+        private int PartNum {get; init; }
+        private string DayNumOfAoC {get; init; }
+        private string InputFileName {get; set; }
+        private bool SampleFile {get; set; }
+
+        private List<string> BatteriesBanks = [];
+
+        public Day3()
+        {
+            SampleFile = false;
+
+            DayNum = 3;
+            PartNum = 1;
+            
+            // Set the day value
+            DayNumOfAoC = Generics.DayNumOfAOC(dayNum:DayNum);
+            Console.WriteLine(DayNumOfAoC);
+
+            // set the input file
+            InputFileName = Generics.InputFileName(dayNum:DayNum, partNum:PartNum, sampleFile:SampleFile);
+
+            // load the data
+            (List<string> inputValues, bool loadedStatus) = Generics.LoadInputFile(inputFilePath:InputFileName);
+
+            DayDataLoadedSuccessfully = loadedStatus;
+
+            // handle problem with loading data
+            if (!loadedStatus)
+            {
+                Console.WriteLine("Error loading data, aborting");
+                throw new FileLoadException ($"Error loading data file {InputFileName}. Aborting.");
+            }
+
+            // handle problem-specific data pre-parsing
+            BatteriesBanks = inputValues;
+
+
+        }
+
+        public void DisplayData()
+        {
+            Console.WriteLine($"{DayNumOfAoC} - data:");
+            foreach (string batteryBank in BatteriesBanks)
+            {
+                Console.WriteLine($"Battery Bank: {batteryBank}");
+            }
+            
+        }
+
+        public void Part1()
+        {
+            /*
+            The batteries are arranged into banks; each line of digits in your input corresponds to a 
+            single bank of batteries. Within each bank, you need to turn on exactly two batteries; 
+            the joltage that the bank produces is equal to the number formed by the digits on the batteries 
+            you've turned on. For example, if you have a bank like 12345 and you turn on batteries 2 and 4, 
+            the bank would produce 24 jolts. (You cannot rearrange batteries.)
+            You'll need to find the largest possible joltage each bank can produce. In the above example:
+                In 987654321111111, you can make the largest joltage possible, 98, by turning on the first two batteries.
+                In 811111111111119, you can make the largest joltage possible by turning on the batteries labeled 8 and 9, producing 89 jolts.
+                In 234234234234278, you can make 78 by turning on the last two batteries (marked 7 and 8).
+                In 818181911112111, the largest joltage you can produce is 92.
+            The total output joltage is the sum of the maximum joltage from each bank, so in this example, 
+            the total output joltage is 98 + 89 + 78 + 92 = 357.
+            There are many batteries in front of you. Find the maximum joltage possible from each bank; 
+            what is the total output joltage?
+            */
+
+            int totalJoltage = 0;
+            foreach (string batteryBank in BatteriesBanks)
+            {
+                int firstMax = 0;
+                int secondMax = 0;
+
+                foreach (char battery in batteryBank)
+                {
+                    int batVal = int.Parse(battery.ToString());
+                    if (firstMax == 0)
+                    {
+                        firstMax = batVal;
+                        continue;
+                    }
+                    if (secondMax == 0)
+                    {
+                        secondMax = batVal;
+                        continue;
+                    }
+
+                    if (secondMax > firstMax)
+                    {
+                        firstMax = secondMax;
+                        secondMax = batVal;
+                        continue;
+
+                    }
+                    if (batVal > secondMax)
+                    {
+                        if (secondMax > firstMax) firstMax = secondMax;
+                            secondMax = batVal;
+                    }
+
+                    
+                }
+
+                totalJoltage += firstMax * 10 + secondMax;
+            }
+            Console.WriteLine($"{DayNumOfAoC} - Part 1: {totalJoltage}");
+        }
+
+        public void Part2()
+        {
+            /*
+            */
+
+            Console.WriteLine($"{DayNumOfAoC} - Part 2: {null}");
+        }
+    }
 
     //region templateDate
     // class Day1 : IAoCDay
@@ -405,13 +528,6 @@ namespace AoC2025
     //     private string DayNumOfAoC {get; init; }
     //     private string InputFileName {get; set; }
     //     private bool SampleFile {get; set; }
-
-    //     private const int dialMin = 0;
-    //     private const int dialMax = 99;
-    //     private const int dialStartingPoint = 50;
-    //     private const int directionL = -1;
-    //     private const int directionR = 1;
-    //     private readonly List<(char, int)> rotations = [];
 
     //     public Day1()
     //     {
@@ -440,12 +556,7 @@ namespace AoC2025
     //         }
 
     //         // handle problem-specific data pre-parsing
-    //         foreach (string line in inputValues)
-    //         {
-    //             char dir = line.Trim()[0];
-    //             int rot = int.Parse(line.Trim()[1..]);
-    //             rotations.Add((dir, rot));
-    //         }
+
     //     }
 
     //     public void DisplayData()

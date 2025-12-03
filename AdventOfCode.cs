@@ -41,12 +41,17 @@ namespace AdventOfcode
             // day1.Part1();
             // day1.Part2();
                 
-            Day2 day2 = new();
-            if (!day2.DayDataLoadedSuccessfully) return 1;
-            // day2.DisplayData();
-            day2.Part1();
-            day2.Part2();
+            // Day2 day2 = new();
+            // if (!day2.DayDataLoadedSuccessfully) return 1;
+            // // day2.DisplayData();
+            // day2.Part1();
+            // day2.Part2();
 
+            Day3 day3 = new();
+            if (!day3.DayDataLoadedSuccessfully) return 1;
+            // day3.DisplayData();
+            day3.Part1();
+            day3.Part2();
 
             // Day2 day2 = new();
             // // day2.DisplayDay2Data();
