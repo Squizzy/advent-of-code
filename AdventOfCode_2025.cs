@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
+using icecream;
 
 namespace AoC2025
 {
@@ -512,9 +513,97 @@ namespace AoC2025
         public void Part2()
         {
             /*
+            Now, you need to make the largest joltage by turning on exactly twelve batteries within each bank.
+            The joltage output for the bank is still the number formed by the digits of the batteries you've turned on; the only difference is that now there will be 12 digits in each bank's joltage output instead of two.
+            Consider again the example from before:
+                987654321111111
+                811111111111119
+                234234234234278
+                818181911112111
+            Now, the joltages are much larger:
+                In 987654321111111, the largest joltage can be found by turning on everything except some 1s at the end to produce 987654321111.
+                In the digit sequence 811111111111119, the largest joltage can be found by turning on everything except some 1s, producing 811111111119.
+                In 234234234234278, the largest joltage can be found by turning on everything except a 2 battery, a 3 battery, and another 2 battery near the start to produce 434234234278.
+                In 818181911112111, the joltage 888911112111 is produced by turning on everything except some 1s near the front.
+            The total output joltage is now much larger: 987654321111 + 811111111119 + 434234234278 + 888911112111 = 3121910778619.
+            What is the new total output joltage?
             */
 
-            Console.WriteLine($"{DayNumOfAoC} - Part 2: {null}");
+            const int NumOfBatteries = 12;
+            double totalJoltage = 0;
+
+            foreach (string batteryBank in BatteriesBanks)
+            {
+
+                // the container for the max jolt value of the battery bank
+                List<int> maxValues = new(NumOfBatteries);
+                
+                // go through each battery in the battery bank
+                foreach (char battery in batteryBank)
+                {
+                    int batVal = int.Parse(battery.ToString());
+
+                    // If the container of the max jolt value contains empty slots, 
+                    // add the jolt value
+                    // then go to the next battery
+                    if (maxValues.Count != maxValues.Capacity)
+                    {
+                        maxValues.Add(batVal);
+                        continue;
+                    }
+
+                    // Here, the container is full. 
+                    // Find the first value in the container which is less than the next value.
+                    // if it is found, shift overwrite its value with the next's value
+                    // and then overwrite all the next other's 
+                    
+                    bool foundLowerValue = false;
+
+                    for (int pos = 0; pos < NumOfBatteries - 1; pos++)
+                    {
+                        if (!foundLowerValue)
+                        {
+                            if (maxValues[pos] < maxValues[pos + 1]) 
+                            {
+                                foundLowerValue = true;
+                            }
+                        }
+
+                        if (foundLowerValue) 
+                        {
+                            maxValues[pos] = maxValues[pos + 1];
+                        }
+                    }
+
+                    // if there was a shift, then the next value becomes the last digit
+                    if (foundLowerValue) 
+                    {
+                        maxValues[^1] = batVal;
+                    }
+
+                    // if there was no shift, then only replace the last digit if the next value the next value higher
+                    else
+                    {
+                        if (maxValues[^1] < batVal)
+                        {
+                            maxValues[^1] = batVal;
+                        }
+                    }
+                }
+
+                // once all is processed, form the actual jolt value
+                double thisMax = 0;
+
+                for (int pos = 0; pos < NumOfBatteries; pos++)
+                {
+                    thisMax += maxValues[pos] * Math.Pow(10, NumOfBatteries - 1 - pos);
+                }
+
+                // and add the value to the totaljoltage
+                totalJoltage += thisMax;
+
+            }
+            Console.WriteLine($"{DayNumOfAoC} - Part 2: {totalJoltage}");
         }
     }
 
